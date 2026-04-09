@@ -63,6 +63,7 @@ categories
   .option('--icon <icon>', 'Icon (emoji or URL)')
   .option('--parent-id <id>', 'Parent category ID')
   .option('--order <n>', 'Sort order', parseInt)
+  .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
   .option('--inactive', 'Create as inactive')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
@@ -77,6 +78,7 @@ categories
         ...(opts.icon && { icon: opts.icon }),
         ...(opts.parentId && { parent_id: parseInt(opts.parentId) }),
         ...(opts.order !== undefined && { order: opts.order }),
+        ...(opts.headHtml && { head_html: opts.headHtml }),
         is_active: !opts.inactive,
       };
       const data = await api.post(`/directories/${dir}/categories`, body);
@@ -100,6 +102,7 @@ categories
   .option('--parent-id <id>', 'Parent category ID')
   .option('--order <n>', 'Sort order', parseInt)
   .option('--active <bool>', 'Active status (true/false)')
+  .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating category...').start();
@@ -114,6 +117,7 @@ categories
       if (opts.parentId) body.parent_id = parseInt(opts.parentId);
       if (opts.order !== undefined) body.order = opts.order;
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
+      if (opts.headHtml) body.head_html = opts.headHtml;
 
       const data = await api.put(`/directories/${dir}/categories/${id}`, body);
       spinner.stop();
