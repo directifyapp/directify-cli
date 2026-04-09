@@ -1,6 +1,6 @@
 {
   "name": "directify-cli",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Official CLI tool for Directify - manage your directories, listings, categories, tags, and articles from the command line.",
   "main": "src/index.js",
   "bin": {
