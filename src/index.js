@@ -9,6 +9,7 @@ import tags from './commands/tags.js';
 import fields from './commands/fields.js';
 import listings from './commands/listings.js';
 import articles from './commands/articles.js';
+import pages from './commands/pages.js';
 
 const program = new Command();
 
@@ -25,5 +26,6 @@ program.addCommand(tags);
 program.addCommand(fields);
 program.addCommand(listings);
 program.addCommand(articles);
+program.addCommand(pages);
 
 program.parse();
