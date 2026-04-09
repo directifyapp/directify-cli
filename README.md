@@ -226,6 +226,55 @@ directify articles delete 789
 directify articles exists --slug "best-italian-restaurants"
 ```
 
+### Custom Pages
+
+```bash
+# List
+directify pages list
+directify pages ls --json
+
+# Get
+directify pages get 12
+
+# Create a page in the navbar
+directify pages create \
+  --title "About Us" \
+  --markdown "# About Us\n\nWe are a directory of the best restaurants..." \
+  --placement navbar \
+  --seo-title "About Us" \
+  --seo-description "Learn about our restaurant directory"
+
+# Create a programmatic SEO page (unlisted by default)
+directify pages create \
+  --title "NYC vs Chicago Pizza" \
+  --markdown "# NYC vs Chicago Pizza\n\nA detailed comparison..." \
+  --seo-title "Best Pizza: NYC vs Chicago Compared" \
+  --seo-description "Compare pizza styles between New York and Chicago"
+
+# Create a footer link
+directify pages create \
+  --title "Terms of Service" \
+  --markdown "# Terms of Service\n\n..." \
+  --placement footer \
+  --order 1
+
+# Create an external link in the navbar
+directify pages create \
+  --title "Submit a Listing" \
+  --external-url "https://forms.google.com/your-form" \
+  --placement navbar \
+  --new-tab
+
+# Update
+directify pages update 12 --title "Updated Title" --placement footer
+
+# Toggle published/unpublished
+directify pages toggle 12
+
+# Delete
+directify pages delete 12
+```
+
 ## Global Options
 
 All resource commands support these options:
