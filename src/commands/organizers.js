@@ -56,9 +56,11 @@ organizers
   .description('Create a new organizer')
   .requiredOption('--name <name>', 'Organizer name')
   .option('--slug <slug>', 'URL slug (auto-generated from name if not provided)')
-  .option('--description <text>', 'Description')
+  .option('--description <text>', 'Short description')
+  .option('--content <text>', 'Long-form content (markdown supported)')
   .option('--email <email>', 'Contact email')
   .option('--phone <phone>', 'Contact phone')
+  .option('--address <address>', 'Physical address')
   .option('--website <url>', 'Website URL')
   .option('--user-id <id>', 'Assign to a user (submitter) by ID')
   .option('--inactive', 'Create as inactive')
@@ -72,8 +74,10 @@ organizers
         name: opts.name,
         ...(opts.slug && { slug: opts.slug }),
         ...(opts.description && { description: opts.description }),
+        ...(opts.content && { content: opts.content }),
         ...(opts.email && { email: opts.email }),
         ...(opts.phone && { phone: opts.phone }),
+        ...(opts.address && { address: opts.address }),
         ...(opts.website && { website_url: opts.website }),
         ...(opts.userId && { user_id: Number(opts.userId) }),
         is_active: !opts.inactive,
@@ -94,9 +98,11 @@ organizers
   .description('Update an organizer')
   .option('--name <name>', 'Organizer name')
   .option('--slug <slug>', 'URL slug')
-  .option('--description <text>', 'Description')
+  .option('--description <text>', 'Short description')
+  .option('--content <text>', 'Long-form content (markdown supported)')
   .option('--email <email>', 'Contact email')
   .option('--phone <phone>', 'Contact phone')
+  .option('--address <address>', 'Physical address')
   .option('--website <url>', 'Website URL')
   .option('--user-id <id>', 'Assign to a user (submitter) by ID')
   .option('--active <bool>', 'Active status (true/false)')
@@ -110,8 +116,10 @@ organizers
       if (opts.name) body.name = opts.name;
       if (opts.slug) body.slug = opts.slug;
       if (opts.description) body.description = opts.description;
+      if (opts.content) body.content = opts.content;
       if (opts.email) body.email = opts.email;
       if (opts.phone) body.phone = opts.phone;
+      if (opts.address) body.address = opts.address;
       if (opts.website) body.website_url = opts.website;
       if (opts.userId) body.user_id = Number(opts.userId);
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
