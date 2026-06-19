@@ -73,6 +73,7 @@ listings
   .option('--lng <n>', 'Longitude', parseFloat)
   .option('--categories <ids>', 'Category IDs (comma-separated)')
   .option('--tags <ids>', 'Tag IDs (comma-separated)')
+  .option('--organizers <ids>', 'Organizer IDs to link (comma-separated)')
   .option('--featured', 'Mark as featured')
   .option('--inactive', 'Create as inactive')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
@@ -95,6 +96,7 @@ listings
       if (opts.lng) body.longitude = opts.lng;
       if (opts.categories) body.categories = opts.categories.split(',').map(Number);
       if (opts.tags) body.tags = opts.tags.split(',').map(Number);
+      if (opts.organizers) body.organizers = opts.organizers.split(',').map(Number);
       if (opts.featured) body.is_featured = true;
       if (opts.inactive) body.is_active = false;
 
@@ -132,6 +134,7 @@ listings
   .option('--lng <n>', 'Longitude', parseFloat)
   .option('--categories <ids>', 'Category IDs (comma-separated)')
   .option('--tags <ids>', 'Tag IDs (comma-separated)')
+  .option('--organizers <ids>', 'Organizer IDs to link, replaces current set (comma-separated; out-of-directory IDs are ignored)')
   .option('--featured <bool>', 'Featured status (true/false)')
   .option('--active <bool>', 'Active status (true/false)')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
@@ -155,6 +158,7 @@ listings
       if (opts.lng) body.longitude = opts.lng;
       if (opts.categories) body.categories = opts.categories.split(',').map(Number);
       if (opts.tags) body.tags = opts.tags.split(',').map(Number);
+      if (opts.organizers) body.organizers = opts.organizers.split(',').map(Number);
       if (opts.featured !== undefined) body.is_featured = opts.featured === 'true';
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
 

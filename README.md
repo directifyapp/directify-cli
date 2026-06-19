@@ -116,9 +116,27 @@ directify tags delete 10
 ### Custom Fields
 
 ```bash
+# List / get
 directify fields list                 # List all custom fields
 directify fields ls --json            # Output as JSON
+directify fields get 12
+
+# Create (label + type required)
+directify fields create \
+  --label "Price Range" \
+  --type select \
+  --options "$,$$,$$$" \
+  --filterable \
+  --on-card
+
+directify fields create --label "Founded Year" --type number
+
+# Update / delete
+directify fields update 12 --label "Pricing Tier" --required true
+directify fields delete 12
 ```
+
+Field types: `text`, `number`, `date`, `file_upload`, `url`, `email`, `rich_editor`, `markdown`, `textarea`, `checkbox`, `rating`, `select`, `list`, `multi_select`, `button`, `javascript`, `html`. The `--name` (machine key) is auto-derived from `--label` if omitted. Set a field's value on a listing via `listings create/update --field "name=value"`.
 
 ### Listings
 
@@ -141,13 +159,15 @@ directify listings create \
   --email "info@bellatrattoria.com" \
   --categories 1,5,12 \
   --tags 3,7 \
+  --organizers 5,8 \
   --featured \
   --field "price_range=2" \
   --field "cuisine_type=Italian, Pasta"
 
-# Update
+# Update (--organizers replaces the listing's current organizer links)
 directify listings update 456 \
   --name "Bella Trattoria NYC" \
+  --organizers 5 \
   --featured true \
   --field "hours_of_operation=Mon | 11:00 - 22:00"
 
@@ -174,6 +194,7 @@ Create a JSON file with an array of listings:
       "description": "Great food",
       "categories": [1, 2],
       "tags": [3],
+      "organizers": [5],
       "price_range": "2",
       "cuisine_type": "Italian"
     },
@@ -193,6 +214,27 @@ Then run:
 ```bash
 directify listings bulk-create --file ./listings.json
 ```
+
+> **Linking organizers:** `--organizers` (and the `organizers` array in the bulk JSON) takes a comma-separated list of organizer IDs to associate the listing with. Only organizers in the same directory are linked; out-of-directory IDs are ignored. On `update`, the list replaces the listing's current organizers. Use `directify organizers list` to find the IDs.
+
+### Organizers
+
+Organizers (agencies, studios, event hosts, etc.) can be linked to multiple listings.
+
+```bash
+# List / get
+directify organizers list
+directify organizers get 5
+
+# Create
+directify organizers create --name "Acme Events" --website "https://acme-events.com"
+
+# Update / delete
+directify organizers update 5 --name "Acme Events Co."
+directify organizers delete 5
+```
+
+To link an organizer to a listing, pass its ID via `--organizers` on `listings create`/`update` (see above).
 
 ### Articles
 
