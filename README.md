@@ -88,6 +88,9 @@ directify categories create --title "Japanese" --parent-id 5 --order 2
 # Update
 directify categories update 42 --title "Italian Cuisine" --order 1
 
+# Use an image instead of an emoji as the icon (settable on create and update)
+directify categories update 42 --custom-icon-url "https://cdn.example.com/pasta.png"
+
 # Delete
 directify categories delete 42
 
@@ -170,6 +173,19 @@ directify listings update 456 \
   --organizers 5 \
   --featured true \
   --field "hours_of_operation=Mon | 11:00 - 22:00"
+
+# Expiring listings: hidden until --starts-at, expired after --ends-at
+directify listings update 456 \
+  --starts-at "2026-08-01 09:00:00" \
+  --ends-at "2026-09-01 09:00:00"
+
+# Media, social links and SEO
+directify listings update 456 \
+  --video-url "https://youtube.com/embed/abc" \
+  --gallery "https://cdn.example.com/1.jpg,https://cdn.example.com/2.jpg" \
+  --social "twitter=https://x.com/bella" \
+  --social "instagram=https://instagram.com/bella" \
+  --seo-title "Bella Trattoria — Italian in NYC"
 
 # Delete
 directify listings delete 456

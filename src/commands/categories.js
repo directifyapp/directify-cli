@@ -61,9 +61,13 @@ categories
   .option('--description <text>', 'Description')
   .option('--content <text>', 'Content (markdown)')
   .option('--icon <icon>', 'Icon (emoji or URL)')
+  .option('--custom-icon-url <url>', 'Custom icon image URL')
   .option('--parent-id <id>', 'Parent category ID')
   .option('--order <n>', 'Sort order', parseInt)
+  .option('--seo-title <text>', 'SEO title')
+  .option('--seo-description <text>', 'SEO description')
   .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
+  .option('--hide-from-sidebar', 'Hide the category from the sidebar')
   .option('--inactive', 'Create as inactive')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
@@ -76,9 +80,13 @@ categories
         ...(opts.description && { description: opts.description }),
         ...(opts.content && { content: opts.content }),
         ...(opts.icon && { icon: opts.icon }),
+        ...(opts.customIconUrl && { custom_icon_url: opts.customIconUrl }),
         ...(opts.parentId && { parent_id: parseInt(opts.parentId) }),
         ...(opts.order !== undefined && { order: opts.order }),
+        ...(opts.seoTitle && { seo_title: opts.seoTitle }),
+        ...(opts.seoDescription && { seo_description: opts.seoDescription }),
         ...(opts.headHtml && { head_html: opts.headHtml }),
+        show_on_sidebar: !opts.hideFromSidebar,
         is_active: !opts.inactive,
       };
       const data = await api.post(`/directories/${dir}/categories`, body);
@@ -99,9 +107,13 @@ categories
   .option('--description <text>', 'Description')
   .option('--content <text>', 'Content')
   .option('--icon <icon>', 'Icon')
+  .option('--custom-icon-url <url>', 'Custom icon image URL')
   .option('--parent-id <id>', 'Parent category ID')
   .option('--order <n>', 'Sort order', parseInt)
   .option('--active <bool>', 'Active status (true/false)')
+  .option('--sidebar <bool>', 'Show in the sidebar (true/false)')
+  .option('--seo-title <text>', 'SEO title')
+  .option('--seo-description <text>', 'SEO description')
   .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
@@ -114,9 +126,13 @@ categories
       if (opts.description) body.description = opts.description;
       if (opts.content) body.content = opts.content;
       if (opts.icon) body.icon = opts.icon;
+      if (opts.customIconUrl) body.custom_icon_url = opts.customIconUrl;
       if (opts.parentId) body.parent_id = parseInt(opts.parentId);
       if (opts.order !== undefined) body.order = opts.order;
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
+      if (opts.sidebar !== undefined) body.show_on_sidebar = opts.sidebar === 'true';
+      if (opts.seoTitle) body.seo_title = opts.seoTitle;
+      if (opts.seoDescription) body.seo_description = opts.seoDescription;
       if (opts.headHtml) body.head_html = opts.headHtml;
 
       const data = await api.put(`/directories/${dir}/categories/${id}`, body);

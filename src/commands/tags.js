@@ -58,6 +58,8 @@ tags
   .option('--text-color <hex>', 'Text color (hex)')
   .option('--icon <icon>', 'Icon')
   .option('--heroicon <name>', 'Heroicon name')
+  .option('--hide-title', "Hide the tag's title on the tag pill")
+  .option('--hide-icon', "Hide the tag's icon on the tag pill")
   .option('--inactive', 'Create as inactive')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
@@ -71,6 +73,8 @@ tags
         ...(opts.textColor && { text_color: opts.textColor }),
         ...(opts.icon && { icon: opts.icon }),
         ...(opts.heroicon && { heroicon: opts.heroicon }),
+        show_title: !opts.hideTitle,
+        show_icon: !opts.hideIcon,
         is_active: !opts.inactive,
       };
       const data = await api.post(`/directories/${dir}/tags`, body);
@@ -92,6 +96,8 @@ tags
   .option('--text-color <hex>', 'Text color')
   .option('--icon <icon>', 'Icon')
   .option('--heroicon <name>', 'Heroicon name')
+  .option('--show-title <bool>', "Show the tag's title on the tag pill (true/false)")
+  .option('--show-icon <bool>', "Show the tag's icon on the tag pill (true/false)")
   .option('--active <bool>', 'Active status (true/false)')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
@@ -105,6 +111,8 @@ tags
       if (opts.textColor) body.text_color = opts.textColor;
       if (opts.icon) body.icon = opts.icon;
       if (opts.heroicon) body.heroicon = opts.heroicon;
+      if (opts.showTitle !== undefined) body.show_title = opts.showTitle === 'true';
+      if (opts.showIcon !== undefined) body.show_icon = opts.showIcon === 'true';
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
 
       const data = await api.put(`/directories/${dir}/tags/${id}`, body);

@@ -65,17 +65,30 @@ listings
   .option('--description <text>', 'Short description')
   .option('--content <text>', 'Full content (markdown)')
   .option('--image-url <url>', 'Cover image URL')
+  .option('--image-alt <text>', 'Alt text for the cover image')
   .option('--logo-url <url>', 'Logo URL')
+  .option('--logo-alt <text>', 'Alt text for the logo')
+  .option('--gallery <urls>', 'Extra gallery image URLs (comma-separated)')
+  .option('--video-url <url>', 'Video URL (e.g. YouTube)')
+  .option('--video-thumbnail-url <url>', 'Thumbnail image URL for the video')
   .option('--phone <number>', 'Phone number')
   .option('--email <email>', 'Email address')
   .option('--address <address>', 'Physical address')
   .option('--lat <n>', 'Latitude', parseFloat)
   .option('--lng <n>', 'Longitude', parseFloat)
+  .option('--social <key=url...>', 'Social links (repeatable, e.g. --social twitter=https://x.com/acme)', collect, [])
+  .option('--category-id <id>', 'Primary category ID', parseInt)
   .option('--categories <ids>', 'Category IDs (comma-separated)')
   .option('--tags <ids>', 'Tag IDs (comma-separated)')
   .option('--organizers <ids>', 'Organizer IDs to link (comma-separated)')
+  .option('--starts-at <date>', 'Date the listing goes live (e.g. "2026-08-01 09:00:00")')
+  .option('--ends-at <date>', 'Date the listing expires (e.g. "2026-09-01 09:00:00")')
   .option('--featured', 'Mark as featured')
+  .option('--nofollow', 'Add rel=nofollow to the outbound link')
   .option('--inactive', 'Create as inactive')
+  .option('--seo-title <text>', 'SEO title')
+  .option('--seo-description <text>', 'SEO description')
+  .option('--head-html <html>', 'Custom HTML for the <head> of the listing page')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
@@ -88,17 +101,30 @@ listings
       if (opts.description) body.description = opts.description;
       if (opts.content) body.content = opts.content;
       if (opts.imageUrl) body.image_url = opts.imageUrl;
+      if (opts.imageAlt) body.image_alt_text = opts.imageAlt;
       if (opts.logoUrl) body.logo_url = opts.logoUrl;
+      if (opts.logoAlt) body.logo_alt_text = opts.logoAlt;
+      if (opts.gallery) body.additional_image_urls = splitList(opts.gallery);
+      if (opts.videoUrl) body.video_url = opts.videoUrl;
+      if (opts.videoThumbnailUrl) body.video_thumbnail_url = opts.videoThumbnailUrl;
       if (opts.phone) body.phone_number = opts.phone;
       if (opts.email) body.email = opts.email;
       if (opts.address) body.address = opts.address;
-      if (opts.lat) body.latitude = opts.lat;
-      if (opts.lng) body.longitude = opts.lng;
-      if (opts.categories) body.categories = opts.categories.split(',').map(Number);
-      if (opts.tags) body.tags = opts.tags.split(',').map(Number);
-      if (opts.organizers) body.organizers = opts.organizers.split(',').map(Number);
+      if (opts.lat !== undefined) body.latitude = opts.lat;
+      if (opts.lng !== undefined) body.longitude = opts.lng;
+      if (opts.social.length) body.social_links = parsePairs(opts.social);
+      if (opts.categoryId !== undefined) body.category_id = opts.categoryId;
+      if (opts.categories) body.categories = splitList(opts.categories).map(Number);
+      if (opts.tags) body.tags = splitList(opts.tags).map(Number);
+      if (opts.organizers) body.organizers = splitList(opts.organizers).map(Number);
+      if (opts.startsAt) body.starts_at = opts.startsAt;
+      if (opts.endsAt) body.ends_at = opts.endsAt;
       if (opts.featured) body.is_featured = true;
+      if (opts.nofollow) body.is_no_follow = true;
       if (opts.inactive) body.is_active = false;
+      if (opts.seoTitle) body.seo_title = opts.seoTitle;
+      if (opts.seoDescription) body.seo_description = opts.seoDescription;
+      if (opts.headHtml) body.head_html = opts.headHtml;
 
       // Custom fields
       for (const field of opts.field) {
@@ -126,17 +152,30 @@ listings
   .option('--description <text>', 'Short description')
   .option('--content <text>', 'Full content (markdown)')
   .option('--image-url <url>', 'Cover image URL')
+  .option('--image-alt <text>', 'Alt text for the cover image')
   .option('--logo-url <url>', 'Logo URL')
+  .option('--logo-alt <text>', 'Alt text for the logo')
+  .option('--gallery <urls>', 'Extra gallery image URLs, replaces current set (comma-separated)')
+  .option('--video-url <url>', 'Video URL (e.g. YouTube)')
+  .option('--video-thumbnail-url <url>', 'Thumbnail image URL for the video')
   .option('--phone <number>', 'Phone number')
   .option('--email <email>', 'Email address')
   .option('--address <address>', 'Physical address')
   .option('--lat <n>', 'Latitude', parseFloat)
   .option('--lng <n>', 'Longitude', parseFloat)
+  .option('--social <key=url...>', 'Social links, replaces current set (repeatable, e.g. --social twitter=https://x.com/acme)', collect, [])
+  .option('--category-id <id>', 'Primary category ID', parseInt)
   .option('--categories <ids>', 'Category IDs (comma-separated)')
   .option('--tags <ids>', 'Tag IDs (comma-separated)')
   .option('--organizers <ids>', 'Organizer IDs to link, replaces current set (comma-separated; out-of-directory IDs are ignored)')
+  .option('--starts-at <date>', 'Date the listing goes live (e.g. "2026-08-01 09:00:00")')
+  .option('--ends-at <date>', 'Date the listing expires (e.g. "2026-09-01 09:00:00")')
   .option('--featured <bool>', 'Featured status (true/false)')
+  .option('--nofollow <bool>', 'Add rel=nofollow to the outbound link (true/false)')
   .option('--active <bool>', 'Active status (true/false)')
+  .option('--seo-title <text>', 'SEO title')
+  .option('--seo-description <text>', 'SEO description')
+  .option('--head-html <html>', 'Custom HTML for the <head> of the listing page')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
@@ -150,17 +189,30 @@ listings
       if (opts.description) body.description = opts.description;
       if (opts.content) body.content = opts.content;
       if (opts.imageUrl) body.image_url = opts.imageUrl;
+      if (opts.imageAlt) body.image_alt_text = opts.imageAlt;
       if (opts.logoUrl) body.logo_url = opts.logoUrl;
+      if (opts.logoAlt) body.logo_alt_text = opts.logoAlt;
+      if (opts.gallery) body.additional_image_urls = splitList(opts.gallery);
+      if (opts.videoUrl) body.video_url = opts.videoUrl;
+      if (opts.videoThumbnailUrl) body.video_thumbnail_url = opts.videoThumbnailUrl;
       if (opts.phone) body.phone_number = opts.phone;
       if (opts.email) body.email = opts.email;
       if (opts.address) body.address = opts.address;
-      if (opts.lat) body.latitude = opts.lat;
-      if (opts.lng) body.longitude = opts.lng;
-      if (opts.categories) body.categories = opts.categories.split(',').map(Number);
-      if (opts.tags) body.tags = opts.tags.split(',').map(Number);
-      if (opts.organizers) body.organizers = opts.organizers.split(',').map(Number);
+      if (opts.lat !== undefined) body.latitude = opts.lat;
+      if (opts.lng !== undefined) body.longitude = opts.lng;
+      if (opts.social.length) body.social_links = parsePairs(opts.social);
+      if (opts.categoryId !== undefined) body.category_id = opts.categoryId;
+      if (opts.categories) body.categories = splitList(opts.categories).map(Number);
+      if (opts.tags) body.tags = splitList(opts.tags).map(Number);
+      if (opts.organizers) body.organizers = splitList(opts.organizers).map(Number);
+      if (opts.startsAt) body.starts_at = opts.startsAt;
+      if (opts.endsAt) body.ends_at = opts.endsAt;
       if (opts.featured !== undefined) body.is_featured = opts.featured === 'true';
+      if (opts.nofollow !== undefined) body.is_no_follow = opts.nofollow === 'true';
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
+      if (opts.seoTitle) body.seo_title = opts.seoTitle;
+      if (opts.seoDescription) body.seo_description = opts.seoDescription;
+      if (opts.headHtml) body.head_html = opts.headHtml;
 
       for (const field of opts.field) {
         const [key, ...rest] = field.split('=');
@@ -242,6 +294,23 @@ listings
 
 function collect(value, previous) {
   return previous.concat([value]);
+}
+
+function splitList(value) {
+  return value
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+/** Turn ["twitter=https://x.com/acme"] into { twitter: "https://x.com/acme" }. */
+function parsePairs(pairs) {
+  const out = {};
+  for (const pair of pairs) {
+    const [key, ...rest] = pair.split('=');
+    out[key.trim()] = rest.join('=');
+  }
+  return out;
 }
 
 export default listings;

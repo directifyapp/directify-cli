@@ -58,6 +58,8 @@ organizers
   .option('--slug <slug>', 'URL slug (auto-generated from name if not provided)')
   .option('--description <text>', 'Short description')
   .option('--content <text>', 'Long-form content (markdown supported)')
+  .option('--logo-url <url>', 'Logo image URL')
+  .option('--cover-image-url <url>', 'Cover image URL')
   .option('--email <email>', 'Contact email')
   .option('--phone <phone>', 'Contact phone')
   .option('--address <address>', 'Physical address')
@@ -75,6 +77,8 @@ organizers
         ...(opts.slug && { slug: opts.slug }),
         ...(opts.description && { description: opts.description }),
         ...(opts.content && { content: opts.content }),
+        ...(opts.logoUrl && { logo_url: opts.logoUrl }),
+        ...(opts.coverImageUrl && { cover_image_url: opts.coverImageUrl }),
         ...(opts.email && { email: opts.email }),
         ...(opts.phone && { phone: opts.phone }),
         ...(opts.address && { address: opts.address }),
@@ -100,6 +104,8 @@ organizers
   .option('--slug <slug>', 'URL slug')
   .option('--description <text>', 'Short description')
   .option('--content <text>', 'Long-form content (markdown supported)')
+  .option('--logo-url <url>', 'Logo image URL')
+  .option('--cover-image-url <url>', 'Cover image URL')
   .option('--email <email>', 'Contact email')
   .option('--phone <phone>', 'Contact phone')
   .option('--address <address>', 'Physical address')
@@ -117,6 +123,8 @@ organizers
       if (opts.slug) body.slug = opts.slug;
       if (opts.description) body.description = opts.description;
       if (opts.content) body.content = opts.content;
+      if (opts.logoUrl) body.logo_url = opts.logoUrl;
+      if (opts.coverImageUrl) body.cover_image_url = opts.coverImageUrl;
       if (opts.email) body.email = opts.email;
       if (opts.phone) body.phone = opts.phone;
       if (opts.address) body.address = opts.address;

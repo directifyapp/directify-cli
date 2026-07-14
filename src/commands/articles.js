@@ -5,6 +5,28 @@ import ora from 'ora';
 
 const articles = new Command('articles').description('Manage blog articles');
 
+/** The articles endpoint takes SEO as a nested object; the CLI exposes it as flat flags. */
+const SEO_KEYS = {
+  seoTitle: 'title',
+  seoDescription: 'description',
+  seoKeywords: 'keywords',
+  ogTitle: 'og_title',
+  ogDescription: 'og_description',
+  ogImage: 'og_image',
+  twitterTitle: 'twitter_title',
+  twitterDescription: 'twitter_description',
+  twitterImage: 'twitter_image',
+  canonical: 'canonical',
+};
+
+function buildSeo(opts) {
+  const seo = {};
+  for (const [optKey, apiKey] of Object.entries(SEO_KEYS)) {
+    if (opts[optKey]) seo[apiKey] = opts[optKey];
+  }
+  return Object.keys(seo).length > 0 ? seo : undefined;
+}
+
 articles
   .command('list')
   .alias('ls')
@@ -63,9 +85,19 @@ articles
   .option('--content <text>', 'HTML content')
   .option('--markdown <text>', 'Markdown content')
   .option('--thumbnail-url <url>', 'Thumbnail image URL')
+  .option('--thumbnail-alt <text>', 'Alt text for the thumbnail image')
+  .option('--published-at <date>', 'Publish date (defaults to now; pass a past date to backdate or a future one to schedule)')
   .option('--categories <names>', 'Category names (comma-separated)')
   .option('--seo-title <text>', 'SEO title')
   .option('--seo-description <text>', 'SEO description')
+  .option('--seo-keywords <text>', 'SEO keywords (comma-separated)')
+  .option('--og-title <text>', 'Open Graph title')
+  .option('--og-description <text>', 'Open Graph description')
+  .option('--og-image <url>', 'Open Graph image URL')
+  .option('--twitter-title <text>', 'Twitter card title')
+  .option('--twitter-description <text>', 'Twitter card description')
+  .option('--twitter-image <url>', 'Twitter card image URL')
+  .option('--canonical <url>', "Canonical URL (defaults to the article's own URL)")
   .option('--inactive', 'Create as inactive')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
@@ -77,12 +109,11 @@ articles
       if (opts.content) body.content = opts.content;
       if (opts.markdown) body.markdown = opts.markdown;
       if (opts.thumbnailUrl) body.thumbnail_url = opts.thumbnailUrl;
+      if (opts.thumbnailAlt) body.thumbnail_alt_text = opts.thumbnailAlt;
+      if (opts.publishedAt) body.published_at = opts.publishedAt;
       if (opts.categories) body.categories = opts.categories.split(',').map((s) => s.trim());
-      if (opts.seoTitle || opts.seoDescription) {
-        body.seo = {};
-        if (opts.seoTitle) body.seo.title = opts.seoTitle;
-        if (opts.seoDescription) body.seo.description = opts.seoDescription;
-      }
+      const seo = buildSeo(opts);
+      if (seo) body.seo = seo;
       body.active = !opts.inactive;
 
       const data = await api.post(`/directories/${dir}/articles`, body);
@@ -104,9 +135,19 @@ articles
   .option('--content <text>', 'HTML content')
   .option('--markdown <text>', 'Markdown content')
   .option('--thumbnail-url <url>', 'Thumbnail image URL')
+  .option('--thumbnail-alt <text>', 'Alt text for the thumbnail image')
+  .option('--published-at <date>', 'Publish date (pass a past date to backdate or a future one to schedule)')
   .option('--categories <names>', 'Category names (comma-separated)')
   .option('--seo-title <text>', 'SEO title')
   .option('--seo-description <text>', 'SEO description')
+  .option('--seo-keywords <text>', 'SEO keywords (comma-separated)')
+  .option('--og-title <text>', 'Open Graph title')
+  .option('--og-description <text>', 'Open Graph description')
+  .option('--og-image <url>', 'Open Graph image URL')
+  .option('--twitter-title <text>', 'Twitter card title')
+  .option('--twitter-description <text>', 'Twitter card description')
+  .option('--twitter-image <url>', 'Twitter card image URL')
+  .option('--canonical <url>', "Canonical URL (defaults to the article's own URL)")
   .option('--active <bool>', 'Active status (true/false)')
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
@@ -119,13 +160,12 @@ articles
       if (opts.content) body.content = opts.content;
       if (opts.markdown) body.markdown = opts.markdown;
       if (opts.thumbnailUrl) body.thumbnail_url = opts.thumbnailUrl;
+      if (opts.thumbnailAlt) body.thumbnail_alt_text = opts.thumbnailAlt;
+      if (opts.publishedAt) body.published_at = opts.publishedAt;
       if (opts.categories) body.categories = opts.categories.split(',').map((s) => s.trim());
       if (opts.active !== undefined) body.active = opts.active === 'true';
-      if (opts.seoTitle || opts.seoDescription) {
-        body.seo = {};
-        if (opts.seoTitle) body.seo.title = opts.seoTitle;
-        if (opts.seoDescription) body.seo.description = opts.seoDescription;
-      }
+      const seo = buildSeo(opts);
+      if (seo) body.seo = seo;
 
       const data = await api.put(`/directories/${dir}/articles/${id}`, body);
       spinner.stop();
