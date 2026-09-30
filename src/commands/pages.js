@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const pages = new Command('pages').description('Manage custom pages');
@@ -10,12 +11,13 @@ pages
   .alias('ls')
   .description('List all custom pages')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching pages...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/pages`);
+      const data = await api.get(localized(`/directories/${dir}/pages`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data);
@@ -44,10 +46,11 @@ pages
   .command('get <id>')
   .description('Get a specific page')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/pages/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/pages/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -68,6 +71,8 @@ pages
   .option('--external-url <url>', 'External URL (makes this a link, not a page)')
   .option('--new-tab', 'Open external links in new tab')
   .option('--unpublished', 'Create as unpublished')
+  .option('--translate <locale.field=value...>', translateHelp('pages'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating page...').start();
@@ -90,6 +95,8 @@ pages
       }
       body.is_published = !opts.unpublished;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/pages`, body);
       spinner.stop();
       const result = data.data || data;
@@ -114,6 +121,8 @@ pages
   .option('--external-url <url>', 'External URL')
   .option('--new-tab <bool>', 'Open in new tab (true/false)')
   .option('--published <bool>', 'Published status (true/false)')
+  .option('--translate <locale.field=value...>', translateHelp('pages'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating page...').start();
@@ -137,6 +146,8 @@ pages
         if (opts.seoDescription) body.seo.description = opts.seoDescription;
       }
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/pages/${id}`, body);
       spinner.stop();
       printSuccess(`Page updated: ${data.data?.title || data.title}`);
@@ -183,5 +194,9 @@ pages
       process.exit(1);
     }
   });
+
+function collect(value, previous) {
+  return previous.concat([value]);
+}
 
 export default pages;

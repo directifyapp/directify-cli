@@ -74,6 +74,15 @@ directify dirs ls                     # Short alias
 directify dirs ls --json              # Output as JSON
 ```
 
+### Languages
+
+For multi-language directories, see which languages a directory is published in (code, tag, name, default, RTL, URL) plus its auto-translate and do-not-translate lists:
+
+```bash
+directify languages list
+directify langs ls --json
+```
+
 ### Categories
 
 ```bash
@@ -333,6 +342,66 @@ directify pages toggle 12
 directify pages delete 12
 ```
 
+## Multi-language Directories
+
+**Reading in a language.** Every `list` and `get` command for listings, categories, tags, custom fields, organizers, articles and pages takes `--locale <code>`; text then comes back in that language. Without it, records come back as stored.
+
+```bash
+directify listings list --locale es
+directify categories get 42 --locale fr --json
+```
+
+Records of multilingual directories include a `translations` object (e.g. `{"es": {"name": "Café de Joe"}}`), and listings include `source_locale` (the language the listing was written in).
+
+**Writing translations.** Every `create` and `update` command takes:
+
+- `--translate <locale>.<field>=<value>` (repeatable) to set one field in one language. An empty value or `null` removes that translation.
+- `--translations '<json>'` to pass the whole object at once. When both are given, `--translate` entries are merged on top of the JSON.
+
+```bash
+directify listings create --name "Joe's Cafe" \
+  --translate es.name="Café de Joe" \
+  --translate es.description="El mejor café del barrio"
+
+directify categories update 42 --translations '{"es":{"title":"Restaurantes"},"fr":{"title":"Restaurants"}}'
+
+# Remove the Spanish name translation
+directify listings update 456 --translate es.name=null
+
+# Listing written in Spanish (the default language is then a translation)
+directify listings create --name "Café de Joe" --source-locale es
+```
+
+`--locale` is for reads only; on writes, use `--translate` / `--translations`.
+
+Translatable fields:
+
+| Resource | Fields |
+|----------|--------|
+| Listings | `name`, `slug`, `description`, `content`, `seo_title`, `seo_description` |
+| Categories | `title`, `slug`, `display_name`, `description`, `content`, `filter_group`, `seo_title`, `seo_description` |
+| Tags | `title` |
+| Articles | `title`, `slug`, `content`, `markdown`, `seo_title`, `seo_description` |
+| Pages | `title`, `slug`, `markdown`, `seo_title`, `seo_description` |
+| Organizers | `name`, `slug`, `description`, `content` |
+| Custom fields | `label`, `placeholder`, `description`, `value_prefix`, `value_suffix` |
+
+**Bulk create.** Each listing in a `bulk-create` JSON file may include `translations` and `source_locale`; they are sent as-is:
+
+```json
+{
+  "listings": [
+    {
+      "name": "Joe's Cafe",
+      "source_locale": "en",
+      "translations": { "es": { "name": "Café de Joe" } }
+    }
+  ]
+}
+```
+
+Use `directify languages list` to see which language codes a directory accepts.
+
 ## Global Options
 
 All resource commands support these options:
@@ -341,6 +410,7 @@ All resource commands support these options:
 |--------|-------------|
 | `-d, --directory <id>` | Directory ID (overrides default) |
 | `--json` | Output as JSON (on list commands) |
+| `--locale <code>` | Return text in this language (on list/get commands) |
 | `--help` | Show help for a command |
 
 ## Custom Fields

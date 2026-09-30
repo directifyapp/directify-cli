@@ -11,17 +11,19 @@ import listings from './commands/listings.js';
 import articles from './commands/articles.js';
 import pages from './commands/pages.js';
 import organizers from './commands/organizers.js';
+import languages from './commands/languages.js';
 
 const program = new Command();
 
 program
   .name('directify')
   .description('Official CLI for Directify - manage your directory websites from the command line.')
-  .version('1.0.0');
+  .version('1.6.0');
 
 program.addCommand(auth);
 program.addCommand(config);
 program.addCommand(directories);
+program.addCommand(languages);
 program.addCommand(categories);
 program.addCommand(tags);
 program.addCommand(fields);

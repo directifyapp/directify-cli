@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const tags = new Command('tags').description('Manage tags');
@@ -10,12 +11,13 @@ tags
   .alias('ls')
   .description('List all tags')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching tags...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/tags`);
+      const data = await api.get(localized(`/directories/${dir}/tags`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data.data || data);
@@ -38,10 +40,11 @@ tags
   .command('get <id>')
   .description('Get a specific tag')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/tags/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/tags/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -61,6 +64,8 @@ tags
   .option('--hide-title', "Hide the tag's title on the tag pill")
   .option('--hide-icon', "Hide the tag's icon on the tag pill")
   .option('--inactive', 'Create as inactive')
+  .option('--translate <locale.field=value...>', translateHelp('tags'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating tag...').start();
@@ -77,6 +82,8 @@ tags
         show_icon: !opts.hideIcon,
         is_active: !opts.inactive,
       };
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/tags`, body);
       spinner.stop();
       printSuccess(`Tag created: ${data.data?.title || data.title} (ID: ${data.data?.id || data.id})`);
@@ -99,6 +106,8 @@ tags
   .option('--show-title <bool>', "Show the tag's title on the tag pill (true/false)")
   .option('--show-icon <bool>', "Show the tag's icon on the tag pill (true/false)")
   .option('--active <bool>', 'Active status (true/false)')
+  .option('--translate <locale.field=value...>', translateHelp('tags'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating tag...').start();
@@ -115,6 +124,8 @@ tags
       if (opts.showIcon !== undefined) body.show_icon = opts.showIcon === 'true';
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/tags/${id}`, body);
       spinner.stop();
       printSuccess(`Tag updated: ${data.data?.title || data.title}`);
@@ -142,5 +153,9 @@ tags
       process.exit(1);
     }
   });
+
+function collect(value, previous) {
+  return previous.concat([value]);
+}
 
 export default tags;

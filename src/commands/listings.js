@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import { readFileSync } from 'fs';
 import ora from 'ora';
 
@@ -11,13 +12,14 @@ listings
   .alias('ls')
   .description('List all listings (paginated)')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--page <n>', 'Page number', '1')
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching listings...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/projects?page=${opts.page}`);
+      const data = await api.get(localized(`/directories/${dir}/projects?page=${opts.page}`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data);
@@ -45,10 +47,11 @@ listings
   .command('get <id>')
   .description('Get a specific listing')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/projects/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/projects/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -90,6 +93,9 @@ listings
   .option('--seo-description <text>', 'SEO description')
   .option('--head-html <html>', 'Custom HTML for the <head> of the listing page')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
+  .option('--source-locale <code>', 'Language the listing is written in (e.g. es)')
+  .option('--translate <locale.field=value...>', translateHelp('listings'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating listing...').start();
@@ -132,6 +138,9 @@ listings
         body[key] = rest.join('=');
       }
 
+      if (opts.sourceLocale) body.source_locale = opts.sourceLocale;
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/projects`, body);
       spinner.stop();
       const result = data.data || data;
@@ -177,6 +186,9 @@ listings
   .option('--seo-description <text>', 'SEO description')
   .option('--head-html <html>', 'Custom HTML for the <head> of the listing page')
   .option('--field <key=value...>', 'Custom field values (repeatable)', collect, [])
+  .option('--source-locale <code>', 'Language the listing is written in (e.g. es)')
+  .option('--translate <locale.field=value...>', translateHelp('listings'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating listing...').start();
@@ -219,6 +231,9 @@ listings
         body[key] = rest.join('=');
       }
 
+      if (opts.sourceLocale) body.source_locale = opts.sourceLocale;
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/projects/${id}`, body);
       spinner.stop();
       printSuccess(`Listing updated: ${data.data?.name || data.name}`);

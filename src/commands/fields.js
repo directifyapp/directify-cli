@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const fields = new Command('fields').description('Manage custom fields');
@@ -20,12 +21,13 @@ fields
   .alias('ls')
   .description('List all custom fields for a directory')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching custom fields...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/custom-fields`);
+      const data = await api.get(localized(`/directories/${dir}/custom-fields`, opts.locale));
       spinner.stop();
       const items = data.data || data;
       if (opts.json) {
@@ -52,10 +54,11 @@ fields
   .command('get <id>')
   .description('Get a specific custom field')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/custom-fields/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/custom-fields/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -91,6 +94,8 @@ fields
   .option('--show-icon-on-card', 'Show the field icon on listing cards')
   .option('--order <n>', 'Sort order', parseInt)
   .option('--rule <rule...>', 'Extra Laravel validation rule (repeatable, e.g. --rule min:3)', collect, [])
+  .option('--translate <locale.field=value...>', translateHelp('fields'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating custom field...').start();
@@ -121,6 +126,8 @@ fields
       if (opts.order !== undefined) body.order = opts.order;
       if (opts.rule.length) body.validation_rules = opts.rule;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/custom-fields`, body);
       spinner.stop();
       const result = data.data || data;
@@ -160,6 +167,8 @@ fields
   .option('--show-icon-on-card <bool>', 'Show the field icon on listing cards (true/false)')
   .option('--order <n>', 'Sort order', parseInt)
   .option('--rule <rule...>', 'Extra Laravel validation rule, replaces current set (repeatable)', collect, [])
+  .option('--translate <locale.field=value...>', translateHelp('fields'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating custom field...').start();
@@ -192,6 +201,8 @@ fields
       if (opts.order !== undefined) body.order = opts.order;
       if (opts.rule.length) body.validation_rules = opts.rule;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/custom-fields/${id}`, body);
       spinner.stop();
       printSuccess(`Custom field updated: ${data.data?.label || data.label}`);

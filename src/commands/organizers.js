@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const organizers = new Command('organizers').alias('orgs').description('Manage organizers');
@@ -10,12 +11,13 @@ organizers
   .alias('ls')
   .description('List all organizers')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching organizers...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/organizers`);
+      const data = await api.get(localized(`/directories/${dir}/organizers`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data.data || data);
@@ -40,10 +42,11 @@ organizers
   .command('get <id>')
   .description('Get a specific organizer')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/organizers/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/organizers/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -67,6 +70,8 @@ organizers
   .option('--user-id <id>', 'Assign to a user (submitter) by ID')
   .option('--inactive', 'Create as inactive')
   .option('--order <n>', 'Sort order', '0')
+  .option('--translate <locale.field=value...>', translateHelp('organizers'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating organizer...').start();
@@ -87,6 +92,8 @@ organizers
         is_active: !opts.inactive,
         order: Number(opts.order),
       };
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/organizers`, body);
       spinner.stop();
       printSuccess(`Organizer created: ${data.data?.name || data.name} (ID: ${data.data?.id || data.id})`);
@@ -113,6 +120,8 @@ organizers
   .option('--user-id <id>', 'Assign to a user (submitter) by ID')
   .option('--active <bool>', 'Active status (true/false)')
   .option('--order <n>', 'Sort order')
+  .option('--translate <locale.field=value...>', translateHelp('organizers'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating organizer...').start();
@@ -133,6 +142,8 @@ organizers
       if (opts.active !== undefined) body.is_active = opts.active === 'true';
       if (opts.order !== undefined) body.order = Number(opts.order);
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/organizers/${id}`, body);
       spinner.stop();
       printSuccess(`Organizer updated: ${data.data?.name || data.name}`);
@@ -160,5 +171,9 @@ organizers
       process.exit(1);
     }
   });
+
+function collect(value, previous) {
+  return previous.concat([value]);
+}
 
 export default organizers;

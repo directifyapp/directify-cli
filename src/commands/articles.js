@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const articles = new Command('articles').description('Manage blog articles');
@@ -32,13 +33,14 @@ articles
   .alias('ls')
   .description('List all articles')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--page <n>', 'Page number', '1')
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching articles...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/articles?page=${opts.page}`);
+      const data = await api.get(localized(`/directories/${dir}/articles?page=${opts.page}`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data);
@@ -66,10 +68,11 @@ articles
   .command('get <id>')
   .description('Get a specific article')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/articles/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/articles/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -99,6 +102,8 @@ articles
   .option('--twitter-image <url>', 'Twitter card image URL')
   .option('--canonical <url>', "Canonical URL (defaults to the article's own URL)")
   .option('--inactive', 'Create as inactive')
+  .option('--translate <locale.field=value...>', translateHelp('articles'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating article...').start();
@@ -116,6 +121,8 @@ articles
       if (seo) body.seo = seo;
       body.active = !opts.inactive;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/articles`, body);
       spinner.stop();
       const result = data.data || data;
@@ -149,6 +156,8 @@ articles
   .option('--twitter-image <url>', 'Twitter card image URL')
   .option('--canonical <url>', "Canonical URL (defaults to the article's own URL)")
   .option('--active <bool>', 'Active status (true/false)')
+  .option('--translate <locale.field=value...>', translateHelp('articles'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating article...').start();
@@ -167,6 +176,8 @@ articles
       const seo = buildSeo(opts);
       if (seo) body.seo = seo;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/articles/${id}`, body);
       spinner.stop();
       printSuccess(`Article updated: ${data.data?.title || data.title}`);
@@ -229,5 +240,9 @@ articles
       process.exit(1);
     }
   });
+
+function collect(value, previous) {
+  return previous.concat([value]);
+}
 
 export default articles;

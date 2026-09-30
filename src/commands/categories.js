@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { api, resolveDirectory } from '../utils/api.js';
 import { printTable, printJson, printSuccess, printError } from '../utils/output.js';
+import { localized, parseTranslations, translateHelp, LOCALE_HELP, TRANSLATIONS_JSON_HELP } from '../utils/translations.js';
 import ora from 'ora';
 
 const categories = new Command('categories')
@@ -12,12 +13,13 @@ categories
   .alias('ls')
   .description('List all categories')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (opts) => {
     const spinner = ora('Fetching categories...').start();
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/categories`);
+      const data = await api.get(localized(`/directories/${dir}/categories`, opts.locale));
       spinner.stop();
       if (opts.json) {
         printJson(data.data || data);
@@ -41,11 +43,12 @@ categories
   .command('get <id>')
   .description('Get a specific category')
   .option('-d, --directory <id>', 'Directory ID')
+  .option('--locale <code>', LOCALE_HELP)
   .option('--json', 'Output as JSON')
   .action(async (id, opts) => {
     try {
       const dir = resolveDirectory(opts);
-      const data = await api.get(`/directories/${dir}/categories/${id}`);
+      const data = await api.get(localized(`/directories/${dir}/categories/${id}`, opts.locale));
       printJson(data.data || data);
     } catch (err) {
       printError(err.message);
@@ -69,6 +72,8 @@ categories
   .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
   .option('--hide-from-sidebar', 'Hide the category from the sidebar')
   .option('--inactive', 'Create as inactive')
+  .option('--translate <locale.field=value...>', translateHelp('categories'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (opts) => {
     const spinner = ora('Creating category...').start();
@@ -89,6 +94,8 @@ categories
         show_on_sidebar: !opts.hideFromSidebar,
         is_active: !opts.inactive,
       };
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.post(`/directories/${dir}/categories`, body);
       spinner.stop();
       printSuccess(`Category created: ${data.data?.title || data.title} (ID: ${data.data?.id || data.id})`);
@@ -115,6 +122,8 @@ categories
   .option('--seo-title <text>', 'SEO title')
   .option('--seo-description <text>', 'SEO description')
   .option('--head-html <html>', 'Custom HTML for the <head> of the category page (e.g. hreflang tags)')
+  .option('--translate <locale.field=value...>', translateHelp('categories'), collect, [])
+  .option('--translations <json>', TRANSLATIONS_JSON_HELP)
   .option('-d, --directory <id>', 'Directory ID')
   .action(async (id, opts) => {
     const spinner = ora('Updating category...').start();
@@ -135,6 +144,8 @@ categories
       if (opts.seoDescription) body.seo_description = opts.seoDescription;
       if (opts.headHtml) body.head_html = opts.headHtml;
 
+      const translations = parseTranslations(opts);
+      if (translations) body.translations = translations;
       const data = await api.put(`/directories/${dir}/categories/${id}`, body);
       spinner.stop();
       printSuccess(`Category updated: ${data.data?.title || data.title}`);
@@ -162,5 +173,9 @@ categories
       process.exit(1);
     }
   });
+
+function collect(value, previous) {
+  return previous.concat([value]);
+}
 
 export default categories;
