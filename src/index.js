@@ -12,13 +12,14 @@ import articles from './commands/articles.js';
 import pages from './commands/pages.js';
 import organizers from './commands/organizers.js';
 import languages from './commands/languages.js';
+import theme from './commands/theme.js';
 
 const program = new Command();
 
 program
   .name('directify')
   .description('Official CLI for Directify - manage your directory websites from the command line.')
-  .version('1.6.0');
+  .version('1.7.0');
 
 program.addCommand(auth);
 program.addCommand(config);
@@ -31,5 +32,6 @@ program.addCommand(listings);
 program.addCommand(articles);
 program.addCommand(pages);
 program.addCommand(organizers);
+program.addCommand(theme);
 
 program.parse();

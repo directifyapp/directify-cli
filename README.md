@@ -342,6 +342,37 @@ directify pages toggle 12
 directify pages delete 12
 ```
 
+### Theme
+
+Everything the Theme Editor controls — template, colors, fonts, hero, homepage sections, footer, images, labels — read as one JSON document and changed with a partial update that is live at once.
+
+```bash
+# The current theme (add --options for the valid values of this template)
+directify theme get
+directify theme options
+
+# Brand colors, fonts, template
+directify theme set --palette ocean
+directify theme set --primary "#1f2937" --accent "#f97316" --font Inter
+directify theme set --template restaurant --set template_settings.hero_city_search=true
+
+# Hero text, images (from URLs), footer and any other key by dotted path
+directify theme set --hero-title "Best coffee in Austin" --hero-subtitle "Hand-picked cafés"
+directify theme set --logo https://example.com/logo.png --favicon https://example.com/favicon.png
+directify theme set --set footer.enabled=true --set footer.copyright_text="© 2026 Austin Coffee"
+directify theme set --set custom_css_vars.--radius-box=1.5rem
+directify theme set --set 'homepage.sections=[{"key":"cta","enabled":false}]'
+
+# Translations of the hero texts and labels
+directify theme set --translate 'es.hero.title=El mejor café de Austin'
+
+# A whole body as JSON
+directify theme set --file theme.json
+
+# Look at the result
+directify theme preview --page home --width 375 --out home-mobile.png
+```
+
 ## Multi-language Directories
 
 **Reading in a language.** Every `list` and `get` command for listings, categories, tags, custom fields, organizers, articles and pages takes `--locale <code>`; text then comes back in that language. Without it, records come back as stored.
